@@ -22,7 +22,33 @@ public class MovementManager : MonoBehaviour
         // 보드에 있는지, 다른 piece에 의해 막히는지 등을 체크
         // 폰에 대한 예외 처리를 적용
         // --- TODO ---
-        
+        var (x, y) = piece.MyPos;
+        for (int step = 1; step <= moveInfo.distance; step++)
+        {
+            x += moveInfo.dirX;
+            y += moveInfo.dirY;
+
+            if (!Utils.IsInBoard((x, y))) return false;
+
+            var blocker = gameManager.Pieces[x, y];
+
+            if ((x, y) == targetPos)
+            {
+                // 빈 칸이면 이동 가능
+                if (blocker == null) return true;
+
+                // 상대 말이면 캡처 가능
+                if (blocker.PlayerDirection != piece.PlayerDirection) return true;
+
+                // 같은 편 말이면 불가능
+                return false;
+            }
+
+            // 중간에 다른 말이 있으면 막힘
+            if (blocker != null) return false;
+        }
+
+        return false;
         // ------
     }
 
@@ -84,7 +110,26 @@ public class MovementManager : MonoBehaviour
         // 왕이 지금 체크 상태인지를 리턴
         // gameManager.Pieces에서 Piece들을 참조하여 움직임을 확인
         // --- TODO ---
-        
+        if (kingPos.Item1 == -1) return false; // 왕 없음 → 체크 아님
+
+        // 상대 말들의 움직임으로 왕이 공격받는지 확인
+        for (int x = 0; x < Utils.FieldWidth; x++)
+        {
+            for (int y = 0; y < Utils.FieldHeight; y++)
+            {
+                var piece = gameManager.Pieces[x, y];
+                if (piece != null && piece.PlayerDirection != playerDirection)
+                {
+                    foreach (var moveInfo in piece.GetMoves())
+                    {
+                        if (TryMove(piece, kingPos, moveInfo))
+                            return true; // 왕이 공격받음
+                    }
+                }
+            }
+        }
+
+        return false;
         // ------
     }
 
@@ -97,7 +142,23 @@ public class MovementManager : MonoBehaviour
         // effectPrefab을 effectParent의 자식으로 생성하고 위치를 적절히 설정
         // currentEffects에 effectPrefab을 추가
         // --- TODO ---
-        
+        for (int x = 0; x < Utils.FieldWidth; x++)
+        {
+            for (int y = 0; y < Utils.FieldHeight; y++)
+            {
+                var targetPos = (x, y);
+                if (IsValidMove(piece, targetPos))
+                {
+                    GameObject effect = Instantiate(effectPrefab, effectParent);
+                    effect.transform.localPosition = new Vector3(
+                        targetPos.Item1 * Utils.TileSize,
+                        0.01f,
+                        targetPos.Item2 * Utils.TileSize
+                    );
+                    currentEffects.Add(effect);
+                }
+            }
+        }
         // ------
     }
 

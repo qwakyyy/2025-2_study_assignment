@@ -32,7 +32,16 @@ public abstract class Piece : MonoBehaviour
     {
         // direction에 따라 sprite를 결정하고, 방향을 결정함
         // --- TODO ---
-        
+        if (direction == 1) // 백
+        {
+            MySpriteRenderer.sprite = WhiteSprite;
+            MySpriteRenderer.flipY = false; // 필요하다면 방향 설정
+        }
+        else if (direction == -1) // 흑
+        {
+            MySpriteRenderer.sprite = BlackSprite;
+            MySpriteRenderer.flipY = true; // 필요하다면 반전
+        }
         // ------
     }
 
@@ -42,9 +51,20 @@ public abstract class Piece : MonoBehaviour
         // MyPos를 업데이트하고, targetPos로 이동
         // MyGameManager.Pieces를 업데이트
         // --- TODO ---
-        
+        if (Utils.IsInBoard(MyPos))
+        {
+            MyGameManager.Pieces[MyPos.Item1, MyPos.Item2] = null;
+        }
+
+        // 새 위치 기록
+        MyPos = targetPos;
+
+        // GameManager의 Pieces 배열 갱신
+        MyGameManager.Pieces[targetPos.Item1, targetPos.Item2] = this;
+
+        // 실제 위치 이동 (Unity 좌표)
+        transform.localPosition = new Vector3(targetPos.Item1, 0.5f, targetPos.Item2);
         // ------
     }
-    
     public abstract MoveInfo[] GetMoves();
 }
